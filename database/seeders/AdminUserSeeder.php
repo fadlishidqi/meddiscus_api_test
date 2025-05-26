@@ -1,5 +1,4 @@
 <?php
-// database/seeders/AdminUserSeeder.php
 
 namespace Database\Seeders;
 
@@ -11,7 +10,6 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user
         User::create([
             'name' => 'Admin Meddiscus',
             'username' => 'admin',
@@ -24,7 +22,6 @@ class AdminUserSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Create regular user
         User::create([
             'name' => 'User Meddiscus',
             'username' => 'user',

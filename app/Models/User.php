@@ -1,8 +1,8 @@
 <?php
-// app/Models/User.php
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,7 +11,17 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasUuid;
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the auto-incrementing ID.
+     */
+    protected $keyType = 'string';
 
     protected $fillable = [
         'name',
@@ -61,7 +71,6 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    // Scopes
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -77,7 +86,6 @@ class User extends Authenticatable implements JWTSubject
         return $query->where('university', $university);
     }
 
-    // Helper methods
     public function isAdmin()
     {
         return $this->role === 'admin';

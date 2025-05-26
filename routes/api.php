@@ -1,12 +1,45 @@
 <?php
-// routes/api.php
 
+use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return response()->json(['message' => 'API Root Working!']);
+// ===========================================
+// HEALTH CHECK
+// ===========================================
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Meddiscus API is running!',
+        'timestamp' => now()->toDateTimeString(),
+        'version' => '1.0.0'
+    ]);
 });
 
-Route::get('/health', function () {
-    return response()->json(['message' => 'Health Check OK!']);
+// ===========================================
+// API VERSION 1 - AUTHENTICATION
+// ===========================================
+Route::prefix('v1/auth')->group(function () {
+    
+    // PUBLIC ROUTES (No Authentication Required)
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+
+    // PROTECTED ROUTES (Authentication Required)
+    Route::middleware(['auth:api'])->group(function () {
+        Route::get('/me', [AuthController::class, 'me']); // Get current user info
+        Route::put('/profile', [AuthController::class, 'updateProfile']); // Update profile
+        Route::post('/change-password', [AuthController::class, 'changePassword']); // Change password
+        Route::post('/logout', [AuthController::class, 'logout']); // Logout
+        Route::get('/check-token', [AuthController::class, 'checkToken']); // Check if token valid
+    });
+});
+
+// ===========================================
+// FALLBACK
+// ===========================================
+Route::fallback(function () {
+    return response()->json([
+        'status' => 'error',
+        'message' => 'API endpoint not found'
+    ], 404);
 });

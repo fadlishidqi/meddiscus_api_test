@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Api/AuthController.php
 
 namespace App\Http\Controllers\Api;
 
@@ -13,18 +12,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:api', [
-            'except' => ['login', 'register']
-        ]);
-    }
-
     /**
      * Register a new user
      */
@@ -52,15 +45,21 @@ class AuthController extends Controller
                     'user' => new UserResource($user),
                     'access_token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => auth('api')->factory()->getTTL() * 60
+                    'expires_in' => $this->getJWTExpiresIn(),
+                    'expires_at' => now()->addMinutes(config('jwt.ttl'))->toDateTimeString()
                 ]
-            ], 201);
+            ], 201)
+            ->header('Content-Type', 'application/json');
+            
         } catch (\Exception $e) {
+            Log::error('Register error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Registrasi gagal',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 500)
+            ->header('Content-Type', 'application/json');
         }
     }
 
@@ -85,7 +84,8 @@ class AuthController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Email/Username atau password salah'
-                ], 401);
+                ], 401)
+                ->header('Content-Type', 'application/json');
             }
 
             $user = auth('api')->user();
@@ -95,7 +95,8 @@ class AuthController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Akun Anda tidak aktif. Hubungi admin.',
-                ], 403);
+                ], 403)
+                ->header('Content-Type', 'application/json');
             }
 
             return response()->json([
@@ -105,15 +106,32 @@ class AuthController extends Controller
                     'user' => new UserResource($user),
                     'access_token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => auth('api')->factory()->getTTL() * 60
+                    'expires_in' => $this->getJWTExpiresIn(),
+                    'expires_at' => now()->addMinutes(config('jwt.ttl'))->toDateTimeString()
                 ]
-            ]);
+            ], 200)
+            ->header('Content-Type', 'application/json')
+            ->header('X-API-Response', 'true');
+            
         } catch (JWTException $e) {
+            Log::error('Login JWT error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Tidak dapat membuat token',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 500)
+            ->header('Content-Type', 'application/json');
+            
+        } catch (\Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Login gagal',
+                'error' => $e->getMessage()
+            ], 500)
+            ->header('Content-Type', 'application/json');
         }
     }
 
@@ -130,13 +148,18 @@ class AuthController extends Controller
                 'data' => [
                     'user' => new UserResource($user)
                 ]
-            ]);
+            ])
+            ->header('Content-Type', 'application/json');
+            
         } catch (\Exception $e) {
+            Log::error('Get user profile error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Tidak dapat mengambil profil user',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 500)
+            ->header('Content-Type', 'application/json');
         }
     }
 
@@ -157,7 +180,8 @@ class AuthController extends Controller
                 'status' => 'error',
                 'message' => 'Validasi gagal',
                 'errors' => $validator->errors()
-            ], 422);
+            ], 422)
+            ->header('Content-Type', 'application/json');
         }
 
         try {
@@ -182,13 +206,18 @@ class AuthController extends Controller
                 'data' => [
                     'user' => new UserResource($user)
                 ]
-            ]);
+            ])
+            ->header('Content-Type', 'application/json');
+            
         } catch (\Exception $e) {
+            Log::error('Update profile error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Update profil gagal',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 500)
+            ->header('Content-Type', 'application/json');
         }
     }
 
@@ -207,7 +236,8 @@ class AuthController extends Controller
                 'status' => 'error',
                 'message' => 'Validasi gagal',
                 'errors' => $validator->errors()
-            ], 422);
+            ], 422)
+            ->header('Content-Type', 'application/json');
         }
 
         try {
@@ -217,7 +247,8 @@ class AuthController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Password saat ini salah',
-                ], 422);
+                ], 422)
+                ->header('Content-Type', 'application/json');
             }
 
             $user->password = Hash::make($request->new_password);
@@ -226,13 +257,18 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Password berhasil diubah',
-            ]);
+            ])
+            ->header('Content-Type', 'application/json');
+            
         } catch (\Exception $e) {
+            Log::error('Change password error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Ubah password gagal',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 500)
+            ->header('Content-Type', 'application/json');
         }
     }
 
@@ -247,13 +283,18 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Berhasil logout'
-            ]);
+            ])
+            ->header('Content-Type', 'application/json');
+            
         } catch (\Exception $e) {
+            Log::error('Logout error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Logout gagal',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 500)
+            ->header('Content-Type', 'application/json');
         }
     }
 
@@ -264,6 +305,7 @@ class AuthController extends Controller
     {
         try {
             $user = auth('api')->user();
+            $payload = auth('api')->payload();
             
             return response()->json([
                 'status' => 'success',
@@ -271,17 +313,37 @@ class AuthController extends Controller
                 'data' => [
                     'valid' => true,
                     'user_id' => $user->id,
-                    'role' => $user->role
+                    'role' => $user->role,
+                    'token_expires_at' => date('Y-m-d H:i:s', $payload['exp'])
                 ]
-            ]);
+            ])
+            ->header('Content-Type', 'application/json');
+            
         } catch (\Exception $e) {
+            Log::error('Check token error: ' . $e->getMessage());
+            
             return response()->json([
                 'status' => 'error',
                 'message' => 'Token tidak valid',
                 'data' => [
                     'valid' => false
                 ]
-            ], 401);
+            ], 401)
+            ->header('Content-Type', 'application/json');
+        }
+    }
+
+
+    /**
+     * Get JWT expiration time in seconds
+     */
+    private function getJWTExpiresIn(): int
+    {
+        try {
+            $ttlMinutes = config('jwt.ttl', 43200);
+            return (int) $ttlMinutes * 60;
+        } catch (\Exception $e) {
+            return 2592000;
         }
     }
 }
