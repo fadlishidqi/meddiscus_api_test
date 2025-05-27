@@ -23,6 +23,9 @@ Route::prefix('v1/auth')->group(function () {
     // PUBLIC ROUTES (No Authentication Required)
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/verify-reset-token', [AuthController::class, 'verifyResetToken']);
 
     // PROTECTED ROUTES (Authentication Required)
     Route::middleware(['auth:api'])->group(function () {

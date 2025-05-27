@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used for generating frontend links in notifications and emails.
+    | This is typically your Next.js or React frontend application URL.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', env('APP_URL')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

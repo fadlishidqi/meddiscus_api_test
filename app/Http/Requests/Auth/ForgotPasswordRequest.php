@@ -4,7 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginRequest extends FormRequest
+class ForgotPasswordRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,16 +14,16 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'login' => 'required|string',
-            'password' => 'required|string',
+            'email' => 'required|email|exists:users,email',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'login.required' => 'Email atau Username wajib diisi',
-            'password.required' => 'Password wajib diisi',
+            'email.required' => 'Email wajib diisi',
+            'email.email' => 'Format email tidak valid',
+            'email.exists' => 'Email tidak terdaftar dalam sistem',
         ];
     }
 }
